@@ -3,6 +3,7 @@ const handlebars = require('express-handlebars') // 引入 handlebars
 const bodyParser = require('body-parser')
 const flash = require('connect-flash')
 const session = require('express-session')
+const passport = require('./config/passport')
 const db = require('./models') // 引入資料庫
 const app = express()
 const port = 3000
@@ -16,6 +17,8 @@ app.use(session({
   resave: false,
   saveUninitialized: false
 }))
+app.use(passport.initialize())
+app.use(passport.session())
 app.use(flash())
 
 // 把 req.flash 放到 res.locals 裡面
@@ -31,4 +34,4 @@ app.listen(port, () => {
 })
 
 // 引入 routes 並將 app 傳進去，讓 routes 可以用 app 這個物件來指定路由
-require('./routes')(app)
+require('./routes')(app, passport)
