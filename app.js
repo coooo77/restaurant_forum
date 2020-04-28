@@ -25,6 +25,7 @@ app.use(flash())
 app.use((req, res, next) => {
   res.locals.success_messages = req.flash('success_messages')
   res.locals.error_messages = req.flash('error_messages')
+  // 如果passport.js使用.get()拿到使用者資料，那這邊就不需要用.get()拿到單純資料了
   res.locals.user = req.user
   // res.locals.user = req.user && req.user.get() // 加這行
   next()
