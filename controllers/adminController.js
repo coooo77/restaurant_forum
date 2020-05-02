@@ -128,6 +128,18 @@ const adminController = {
       .then((users) => {
         res.render('admin/users', { users })
       })
+  },
+
+  putUsers: (req, res) => {
+    return User.findByPk(req.params.id)
+      .then(async (user) => {
+        user.isAdmin = !user.isAdmin ? 1 : 0
+        await user.save()
+      })
+      .then((user) => {
+        req.flash('success_messages', 'user was successfully to update')
+        return res.redirect('/admin/users')
+      })
   }
 }
 

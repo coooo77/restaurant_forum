@@ -28,9 +28,13 @@
         </td>
         <td>
           {{#if this.isAdmin}}
-            set as user
+            <form action="/admin/users/{{this.id}}?_method=PUT" method="POST">
+              <a href="#" onclick="this.parentNode.submit()">set as user</a>
+            </form>
           {{else}}
-            set as admin
+            <form action="/admin/users/{{this.id}}?_method=PUT" method="POST">
+              <a href="#" onclick="this.parentNode.submit()">set as admin</a>
+            </form>
           {{/if}}
         </td>
       </tr>
