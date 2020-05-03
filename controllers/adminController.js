@@ -133,7 +133,7 @@ const adminController = {
   putUsers: (req, res) => {
     return User.findByPk(req.params.id)
       .then(async (user) => {
-        user.isAdmin = !user.isAdmin ? 1 : 0
+        user.isAdmin = !user.isAdmin
         await user.save()
       })
       .then((user) => {
