@@ -9,8 +9,14 @@ let restController = {
         description: r.dataValues.description.substring(0, 50),
         categoryName: r.Category.name
       }))
-      return res.render('restaurants', {
-        restaurants: JSON.parse(JSON.stringify(data))
+      Category.findAll({
+        raw: true,
+        nest: true
+      }).then(categories => {
+        return res.render('restaurants', {
+          restaurants: JSON.parse(JSON.stringify(data)),
+          categories: categories
+        })
       })
     })
   },
