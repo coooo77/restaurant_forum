@@ -1,0 +1,18 @@
+<div class="container border">
+  <div class="row ">
+    <div class="col-4 pt-3">
+      <img class="img-responsive center-block" {{#if user.image}} src="{{user.image}}" {{else}}
+        src="https://www.omsa.org.in/images/noimage.png" {{/if}} style="width: 250px;margin-bottom: 25px;"
+        alt="Profile Image">
+    </div>
+    <div class="col-8 p-3">
+      <h4>NAME ：{{user.name}}</h4>
+      <h4>E-MAIL：{{user.email}}</h4>
+      {{#if user.isOwner}}
+        <form action="/users/{{user.id}}/edit" method="GET">
+          <button type="submit" class="btn btn-primary">Edit</button>
+        </form>
+      {{/if}}
+    </div>
+  </div>
+</div>

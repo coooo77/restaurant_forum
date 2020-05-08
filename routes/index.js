@@ -21,6 +21,15 @@ module.exports = (app, passport) => {
     }
     res.redirect('/signin')
   }
+  const isOwner = (req, res, next) => {
+    // 檢查是否為該頁面擁有者
+    if (Number(req.params.id) === Number(req.user.id)) {
+      return next()
+    } else {
+      return res.redirect('back')
+    }
+
+  }
 
   app.get('/', authenticated, (req, res) => res.redirect('/restaurants'))
   app.get('/restaurants', authenticated, restController.getRestaurants)
@@ -46,6 +55,10 @@ module.exports = (app, passport) => {
   app.get('/signin', userController.signInPage)
   app.post('/signin', passport.authenticate('local', { failureRedirect: '/signin', failureFlash: true }), userController.signIn)
   app.get('/logout', userController.logout)
+
+  app.get('/users/:id', authenticated, userController.getUser)
+  app.get('/users/:id/edit', authenticated, isOwner, userController.editUser)
+  app.put('/users/:id', authenticated, upload.single('image'), userController.putUser)
 
   app.get('/admin/categories', authenticatedAdmin, categoryController.getCategories)
   app.post('/admin/categories', authenticatedAdmin, categoryController.postCategory)
