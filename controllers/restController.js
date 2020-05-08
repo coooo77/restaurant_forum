@@ -87,6 +87,23 @@ let restController = {
         })
       })
     })
-  }
+  },
+
+  getDashboard: (req, res) => {
+    return Restaurant.findByPk(req.params.id, {
+      include: Category
+    }).then(restaurant => {
+      Comment.findAndCountAll({
+        where: { RestaurantId: req.params.id }
+      }).then(data => {
+        const numberOfComments = JSON.parse(JSON.stringify(data)).count
+        return res.render('dashboard', {
+          restaurant: restaurant.toJSON(),
+          numberOfComments: numberOfComments
+        })
+      })
+    })
+  },
+
 }
 module.exports = restController
