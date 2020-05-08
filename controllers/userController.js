@@ -1,6 +1,8 @@
 const bcrypt = require('bcryptjs')
 const db = require('../models')
 const User = db.User
+const Comment = db.Comment
+const Restaurant = db.Restaurant
 const fs = require('fs')
 const imgur = require('imgur-node-api')
 const IMGUR_CLIENT_ID = process.env.IMGUR_CLIENT_ID
@@ -54,10 +56,25 @@ const userController = {
     User.findByPk(req.params.id, {
       raw: true,
       nest: true
-    }).then((user) => {
+    }).then(async (user) => {
       // 檢查是否是Profile的擁有者
       user.isOwner = req.user.id === user.id ? true : false
-      return res.render('profile', { user: user })
+      await Comment.findAndCountAll({
+        where: { UserId: req.params.id },
+        include: Restaurant
+      })
+        .then((data) => {
+          const numberOfComments = JSON.parse(JSON.stringify(data.count))
+          const result = JSON.parse(JSON.stringify(data.rows)).map((data) => ({
+            id: data.Restaurant.id,
+            image: data.Restaurant.image
+          }))
+          return res.render('profile', {
+            user: user,
+            result: result,
+            numberOfComments: numberOfComments
+          })
+        })
     })
   },
 
