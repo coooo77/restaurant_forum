@@ -1,0 +1,57 @@
+<ul class="nav nav-tabs">
+  <li class="nav-item">
+    <a class="nav-link" href="/restaurants">首頁</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="/restaurants/feeds">最新動態</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link active" href="/restaurants/top">TOP10 人氣餐廳</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="/users/top">美食達人</a>
+  </li>
+</ul>
+<br /><br />
+<h1>人氣餐廳</h1>
+<hr />
+{{!-- <div class="row" style="text-align: center;"> --}}
+<div class="container d-flex flex-column align-items-center">
+  {{#each top10Restaurants}}
+    <div class="card w-75 mb-3">
+      <div class="card-body pt-3 pb-0 ml-3">
+        <div class="row">
+          <div class="col-4 d-flex justify-content-end">
+            <img class="img-responsive center-block" src="{{this.image}}" style="width: 250px;margin-bottom: 25px;">
+          </div>
+          <div class="col-8">
+            <h2 class="card-title">{{this.name}}</h2>
+            <span class="badge badge-secondary">收藏數：{{this.FavoriteCount}}</span>
+            <p class="card-text">{{this.description}}</p>
+            <div class="d-flex">
+              <a class="btn btn-primary mr-3" href="/restaurants/{{this.id}}" role="button">Show</a>
+              {{#if this.isFavorited }}
+                <form action="/favorite/{{this.id}}?_method=DELETE" method="POST" class="mr-2"><button type="submit"
+                    class="btn btn-danger">移除最愛</button></form>
+              {{else}}
+                <form action="/favorite/{{this.id}}" method="POST" class="mr-2"><button type="submit"
+                    class="btn btn-primary">加到最愛</button></form>
+              {{/if}}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {{/each}}
+</div>
+
+{{!-- <div class="col-4 d-flex justify-content-end">
+                <img class="img-responsive center-block" src="{{this.image}}" style="width: 250px;margin-bottom: 25px;">
+              </div> --}}
+
+{{!-- <div class="col-8">
+                <h2>{{this.name}}</h2>
+                <span class="badge badge-secondary">收藏數：{{this.FavoriteCount}}</span>
+                <p>{{this.description}}</p>
+              </div>
+              </div> --}}
