@@ -15,14 +15,17 @@
   </div>
   <div class="col-md-8">
     <p>{{restaurant.description}}</p>
-    <a class="btn btn-primary" href="/restaurants/{{restaurant.id}}/dashboard" role="button">Dashboard</a>
-    {{#if isFavorited }}
-      <form action="/favorite/{{restaurant.id}}?_method=DELETE" method="POST" style="display: contents;"><button
-          type="submit" class="btn btn-danger">移除最愛</button></form>
-    {{else}}
-      <form action="/favorite/{{restaurant.id}}" method="POST" style="display: contents;"><button type="submit"
-          class="btn btn-primary">加到最愛</button></form>
-    {{/if}}
+    <div class="d-flex">
+      <a class="btn btn-primary mr-3" href="/restaurants/{{restaurant.id}}/dashboard" role="button">Dashboard</a>
+      {{#if this.isLiked }}
+        <form action="/like/{{restaurant.id}}?_method=DELETE" method="POST"><button type="submit"
+            class="btn btn-danger">Unlike</button></form>
+      {{else}}
+        <form action="/like/{{restaurant.id}}" method="POST"><button type="submit" class="btn btn-primary">Like</button>
+        </form>
+      {{/if}}
+    </div>
+
   </div>
   <hr>
 </div>
