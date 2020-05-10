@@ -54,29 +54,59 @@ const userController = {
     res.redirect('/signin')
   },
 
+  // 下列寫法
+  // User.findByPk(req.params.id, {
+  //   include: { model: Comment, include: [Restaurant] }
+  // })
+  // 等同於
+  // User.findByPk(req.params.id)
+  //   .then((user) => {
+  //     Comment.findAndCountAll({
+  //       where: { UserId: req.params.id },
+  //       include: Restaurant
+  //     })
+  //   })
+  // include的用法去參照model的關聯會比較清楚用法
+
+  // 可能需要解決的問題：自己追蹤自己算是合理的功能嗎?
+
   getUser: (req, res) => {
     User.findByPk(req.params.id, {
-      raw: true,
-      nest: true
-    }).then(async (user) => {
-      // 檢查是否是Profile的擁有者
-      user.isOwner = req.user.id === user.id ? true : false
-      await Comment.findAndCountAll({
-        where: { UserId: req.params.id },
-        include: Restaurant
+      include: [
+        { model: Comment, include: [Restaurant] },
+        { model: Restaurant, as: 'FavoritedRestaurants' },
+        { model: User, as: 'Followers' },
+        { model: User, as: 'Followings' },
+      ]
+    }).then((user) => {
+      // 找出所有評論過的餐廳(CommentedRestaurants)，但是不重複      
+      const CommentedRestaurants = []
+      user.Comments.forEach((comment) => {
+        // 如果CommentedRestaurants內有餐廳資料，把餐廳ID取出來做成陣列(currentData)來檢查；沒有的話就是第一次檢查，為了避免錯誤產生，所以給予空陣列[]
+        const currentData = CommentedRestaurants.length ? CommentedRestaurants.map(restaurant => restaurant.id) : []
+        const data = JSON.parse(JSON.stringify(comment.dataValues.Restaurant))
+        // 如果現在檢查的餐廳ID已經在currentData裡面，代表已經有兩則以上的評論了，不需要再把餐廳資料放進去
+        if (!currentData.includes(comment.dataValues.RestaurantId)) {
+          CommentedRestaurants.push(data)
+        }
       })
-        .then((data) => {
-          const numberOfComments = JSON.parse(JSON.stringify(data.count))
-          const result = JSON.parse(JSON.stringify(data.rows)).map((data) => ({
-            id: data.Restaurant.id,
-            image: data.Restaurant.image
-          }))
-          return res.render('profile', {
-            user: user,
-            result: result,
-            numberOfComments: numberOfComments
-          })
-        })
+
+      const numbers = {
+        numberOfComments: CommentedRestaurants.length,
+        numberOfFavoritedRestaurants: user.FavoritedRestaurants.length,
+        numberOfFollowers: user.Followers.length,
+        numberOfFollowings: user.Followings.length
+      }
+      // 檢查是否是Profile的擁有者
+      const isOwner = req.user.id === user.id
+      const isFollowed = req.user.Followings.map(d => d.id).includes(user.id)
+      return res.render('profile', {
+        user: user.toJSON(),
+        isOwner,
+        isFollowed,
+        numbers,
+        CommentedRestaurants
+      })
     })
   },
 

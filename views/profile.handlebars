@@ -10,28 +10,95 @@
     <div class="col-8 p-3">
       <h4>NAME ：{{user.name}}</h4>
       <h4>E-MAIL：{{user.email}}</h4>
-      <h6>{{numberOfComments}} 已評論餐廳</h6>
-      {{#if user.isOwner}}
+      <h6>{{numbers.numberOfComments}} 已評論餐廳</h6>
+      <h6>{{numbers.numberOfFavoritedRestaurants}} 收藏的餐廳</h6>
+      <h6>{{numbers.numberOfFollowings}} Followings ({{user.name}}追蹤的使用者)</h6>
+      <h6>{{numbers.numberOfFollowers}} Follower (追蹤{{user.name}}的使用者)</h6>
+      {{#if isOwner}}
         <form action="/users/{{user.id}}/edit" method="GET">
           <button type="submit" class="btn btn-primary">Edit</button>
         </form>
+      {{else}}
+        {{#if isFollowed }}
+          <form action="/following/{{user.id}}?_method=DELETE" method="POST" style="display: contents;"><button
+              type="submit" class="btn btn-danger">取消追蹤</button></form>
+        {{else}}
+          <form action="/following/{{user.id}}" method="POST" style="display: contents;"><button type="submit"
+              class="btn btn-primary">追蹤</button></form>
+        {{/if}}
       {{/if}}
     </div>
 
   </div>
 </div>
 
-<div class="card mt-3">
-  <div class="card-header">
-    {{numberOfComments}} 已評論餐廳
+<div class="row p-0">
+
+  <div class="col-4">
+    <div class="card mt-3">
+      <div class="card-header">
+        {{numbers.numberOfFollowings}} Followings ({{user.name}}追蹤的使用者)
+      </div>
+      <div class="card-body">
+        <blockquote class="blockquote mb-0">
+          {{#each user.Followings}}
+            <a href="/users/{{this.id}}">
+              <img src="{{this.image}}" alt="使用者ID：{{this.id}}" style="width: 50px; height:50px; object-fit:cover">
+            </a>
+          {{/each}}
+        </blockquote>
+      </div>
+    </div>
   </div>
-  <div class="card-body">
-    <blockquote class="blockquote mb-0">
-      {{#each result}}
-        <a href="/restaurants/{{this.id}}">
-          <img src="{{this.image}}" alt="餐廳ID：{{this.id}}" style="width: 50px; height:50px; object-fit:cover">
-        </a>
-      {{/each}}
-    </blockquote>
+
+  <div class="col-8">
+    <div class="card mt-3">
+      <div class="card-header">
+        {{numbers.numberOfComments}} 已評論餐廳
+      </div>
+      <div class="card-body">
+        <blockquote class="blockquote mb-0">
+          {{#each CommentedRestaurants}}
+            <a href="/restaurants/{{this.id}}">
+              <img src="{{this.image}}" alt="餐廳ID：{{this.id}}" style="width: 50px; height:50px; object-fit:cover">
+            </a>
+          {{/each}}
+        </blockquote>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-4">
+    <div class="card mt-3">
+      <div class="card-header">
+        {{numbers.numberOfFollowers}} Follower (追蹤{{user.name}}的使用者)
+      </div>
+      <div class="card-body">
+        <blockquote class="blockquote mb-0">
+          {{#each user.Followers}}
+            <a href="/users/{{this.id}}">
+              <img src="{{this.image}}" alt="使用者ID：{{this.id}}" style="width: 50px; height:50px; object-fit:cover">
+            </a>
+          {{/each}}
+        </blockquote>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-8">
+    <div class="card mt-3">
+      <div class="card-header">
+        {{numbers.numberOfFavoritedRestaurants}} 收藏的餐廳
+      </div>
+      <div class="card-body">
+        <blockquote class="blockquote mb-0">
+          {{#each user.FavoritedRestaurants}}
+            <a href="/restaurants/{{this.id}}">
+              <img src="{{this.image}}" alt="餐廳ID：{{this.id}}" style="width: 50px; height:50px; object-fit:cover">
+            </a>
+          {{/each}}
+        </blockquote>
+      </div>
+    </div>
   </div>
 </div>
