@@ -98,18 +98,30 @@ let restController = {
     })
   },
 
+  // getDashboard: (req, res) => {
+  //   return Restaurant.findByPk(req.params.id, {
+  //     include: Category
+  //   }).then(restaurant => {
+  //     Comment.findAndCountAll({
+  //       where: { RestaurantId: req.params.id }
+  //     }).then(data => {
+  //       const numberOfComments = JSON.parse(JSON.stringify(data)).count
+  //       return res.render('dashboard', {
+  //         restaurant: restaurant.toJSON(),
+  //         numberOfComments: numberOfComments
+  //       })
+  //     })
+  //   })
+  // },
+
   getDashboard: (req, res) => {
-    return Restaurant.findByPk(req.params.id, {
-      include: Category
-    }).then(restaurant => {
-      Comment.findAndCountAll({
-        where: { RestaurantId: req.params.id }
-      }).then(data => {
-        const numberOfComments = JSON.parse(JSON.stringify(data)).count
-        return res.render('dashboard', {
-          restaurant: restaurant.toJSON(),
-          numberOfComments: numberOfComments
-        })
+    const restaurant = Restaurant.findByPk(req.params.id, { include: Category })
+    const comment = Comment.findAndCountAll({ where: { RestaurantId: req.params.id } })
+    Promise.all([restaurant, comment]).then((values) => {
+      const numberOfComments = JSON.parse(JSON.stringify(values[1])).count
+      return res.render('dashboard', {
+        restaurant: values[0].toJSON(),
+        numberOfComments: numberOfComments
       })
     })
   },
