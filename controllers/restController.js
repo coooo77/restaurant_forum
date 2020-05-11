@@ -35,8 +35,8 @@ let restController = {
         ...r.dataValues,
         description: r.dataValues.description.substring(0, 50),
         categoryName: r.Category.name,
-        isFavorited: req.user.FavoritedRestaurants.map(d => d.id).includes(r.id),
-        isLiked: req.user.LikedRestaurants.map(d => d.id).includes(r.id)
+        isFavorited: req.user.FavoritedRestaurants.some(d => d.id === r.id),
+        isLiked: req.user.LikedRestaurants.some(d => d.id === r.id)
       }))
       Category.findAll({
         raw: true,
@@ -66,8 +66,8 @@ let restController = {
     })
       .then(restaurant => restaurant.increment('viewCounts'))
       .then(restaurant => {
-        const isFavorited = restaurant.FavoritedUsers.map(d => d.id).includes(req.user.id)
-        const isLiked = restaurant.LikedUsers.map(d => d.id).includes(req.user.id)
+        const isFavorited = restaurant.FavoritedUsers.some(d => d.id === req.user.id)
+        const isLiked = restaurant.LikedUsers.some(d => d.id === req.user.id)
         return res.render('restaurant', {
           restaurant: restaurant.toJSON(),
           isFavorited: isFavorited,
@@ -120,14 +120,16 @@ let restController = {
     const restaurant = Restaurant.findByPk(req.params.id, { include: Category })
     const comment = Comment.findAndCountAll({ where: { RestaurantId: req.params.id } })
     Promise.all([restaurant, comment]).then((values) => {
-      const numberOfComments = JSON.parse(JSON.stringify(values[1])).count
+      const [restaurants, comments] = values
+      const numberOfComments = JSON.parse(JSON.stringify(comments)).count
       return res.render('dashboard', {
-        restaurant: values[0].toJSON(),
+        restaurant: restaurants.toJSON(),
         numberOfComments: numberOfComments
       })
     })
   },
 
+  //如果有時間可以研究一下，從資料庫取資料的時候就依照加入最愛的數量去排序，並取出前10筆資料
   getTop10Restaurants: (req, res) => {
     return Restaurant.findAll({
       include: [
@@ -138,7 +140,7 @@ let restController = {
         ...restaurant.dataValues,
         description: restaurant.dataValues.description.substring(0, 50),
         FavoriteCount: restaurant.FavoritedUsers.length,
-        isFavorited: restaurant.FavoritedUsers.map(d => d.id).includes(req.user.id)
+        isFavorited: restaurant.FavoritedUsers.some(d => d.id === req.user.id)
       }))
       restaurants = restaurants.sort((a, b) => b.FavoriteCount - a.FavoriteCount)
       const top10Restaurants = restaurants.splice(0, 10)

@@ -82,14 +82,14 @@ const userController = {
       // 找出所有評論過的餐廳(CommentedRestaurants)，但是不重複      
       const CommentedRestaurants = []
       user.Comments.forEach((comment) => {
-        // 如果CommentedRestaurants內有餐廳資料，把餐廳ID取出來做成陣列(currentData)來檢查；沒有的話就是第一次檢查，為了避免錯誤產生，所以給予空陣列[]
-        const currentData = CommentedRestaurants.length ? CommentedRestaurants.map(restaurant => restaurant.id) : []
         const data = JSON.parse(JSON.stringify(comment.dataValues.Restaurant))
-        // 如果現在檢查的餐廳ID已經在currentData裡面，代表已經有兩則以上的評論了，不需要再把餐廳資料放進去
-        if (!currentData.includes(comment.dataValues.RestaurantId)) {
+        // 如果現在檢查的餐廳ID已經在CommentedRestaurants裡面，代表已經有兩則以上的評論了，不需要再把餐廳資料放進去
+        if (!CommentedRestaurants.some(restaurant => restaurant.id === comment.dataValues.RestaurantId)) {
           CommentedRestaurants.push(data)
         }
       })
+
+      console.log('CommentedRestaurants', CommentedRestaurants)
 
       const numbers = {
         numberOfComments: CommentedRestaurants.length,
@@ -99,7 +99,7 @@ const userController = {
       }
       // 檢查是否是Profile的擁有者
       const isOwner = req.user.id === user.id
-      const isFollowed = req.user.Followings.map(d => d.id).includes(user.id)
+      const isFollowed = req.user.Followings.some(d => d.id === user.id)
       return res.render('profile', {
         user: user.toJSON(),
         isOwner,
@@ -211,7 +211,7 @@ const userController = {
       users = users.map(user => ({
         ...user.dataValues,
         FollowerCount: user.Followers.length,
-        isFollowed: req.user.Followings.map(d => d.id).includes(user.id)
+        isFollowed: req.user.Followings.some(d => d.id === user.id)
       }))
       users = users.sort((a, b) => b.FollowerCount - a.FollowerCount)
       return res.render('topUser', { users: users })
