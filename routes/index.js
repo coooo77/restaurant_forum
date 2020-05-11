@@ -1,3 +1,4 @@
+const auth = require('../config/auth')
 const restController = require('../controllers/restController.js')
 const adminController = require('../controllers/adminController.js')
 const userController = require('../controllers/userController.js')
@@ -8,49 +9,27 @@ const multer = require('multer')
 const upload = multer({ dest: 'temp/' })
 
 module.exports = (app, passport) => {
-  const authenticated = (req, res, next) => {
-    if (req.isAuthenticated()) {
-      return next()
-    }
-    res.redirect('/signin')
-  }
-  const authenticatedAdmin = (req, res, next) => {
-    if (req.isAuthenticated()) {
-      if (req.user.isAdmin) { return next() }
-      return res.redirect('/')
-    }
-    res.redirect('/signin')
-  }
-  const isOwner = (req, res, next) => {
-    // 檢查是否為該頁面擁有者
-    if (Number(req.params.id) === Number(req.user.id)) {
-      return next()
-    } else {
-      return res.redirect('back')
-    }
 
-  }
+  app.get('/', auth.authenticated, (req, res) => res.redirect('/restaurants'))
+  app.get('/restaurants', auth.authenticated, restController.getRestaurants)
+  app.get('/restaurants/top', auth.authenticated, restController.getTop10Restaurants)
+  app.get('/restaurants/feeds', auth.authenticated, restController.getFeeds)
+  app.get('/restaurants/:id', auth.authenticated, restController.getRestaurant)
+  app.get('/restaurants/:id/dashboard', auth.authenticated, restController.getDashboard)
 
-  app.get('/', authenticated, (req, res) => res.redirect('/restaurants'))
-  app.get('/restaurants', authenticated, restController.getRestaurants)
-  app.get('/restaurants/top', authenticated, restController.getTop10Restaurants)
-  app.get('/restaurants/feeds', authenticated, restController.getFeeds)
-  app.get('/restaurants/:id', authenticated, restController.getRestaurant)
-  app.get('/restaurants/:id/dashboard', authenticated, restController.getDashboard)
+  app.post('/comments', auth.authenticated, commentController.postComment)
+  app.delete('/comments/:id', auth.authenticatedAdmin, commentController.deleteComment)
 
-  app.post('/comments', authenticated, commentController.postComment)
-  app.delete('/comments/:id', authenticatedAdmin, commentController.deleteComment)
-
-  app.get('/admin', authenticatedAdmin, (req, res) => res.redirect('/admin/restaurants'))
-  app.get('/admin/restaurants', authenticatedAdmin, adminController.getRestaurants)
-  app.get('/admin/restaurants/create', authenticatedAdmin, adminController.createRestaurant)
-  app.post('/admin/restaurants', authenticatedAdmin, upload.single('image'), adminController.postRestaurant)
-  app.get('/admin/restaurants/:id', authenticatedAdmin, adminController.getRestaurant)
-  app.get('/admin/restaurants/:id/edit', authenticatedAdmin, adminController.editRestaurant)
-  app.put('/admin/restaurants/:id', authenticatedAdmin, upload.single('image'), adminController.putRestaurant)
-  app.delete('/admin/restaurants/:id', authenticatedAdmin, adminController.deleteRestaurant)
-  app.get('/admin/users', authenticatedAdmin, adminController.getUsers)
-  app.put('/admin/users/:id', authenticatedAdmin, adminController.putUsers)
+  app.get('/admin', auth.authenticatedAdmin, (req, res) => res.redirect('/admin/restaurants'))
+  app.get('/admin/restaurants', auth.authenticatedAdmin, adminController.getRestaurants)
+  app.get('/admin/restaurants/create', auth.authenticatedAdmin, adminController.createRestaurant)
+  app.post('/admin/restaurants', auth.authenticatedAdmin, upload.single('image'), adminController.postRestaurant)
+  app.get('/admin/restaurants/:id', auth.authenticatedAdmin, adminController.getRestaurant)
+  app.get('/admin/restaurants/:id/edit', auth.authenticatedAdmin, adminController.editRestaurant)
+  app.put('/admin/restaurants/:id', auth.authenticatedAdmin, upload.single('image'), adminController.putRestaurant)
+  app.delete('/admin/restaurants/:id', auth.authenticatedAdmin, adminController.deleteRestaurant)
+  app.get('/admin/users', auth.authenticatedAdmin, adminController.getUsers)
+  app.put('/admin/users/:id', auth.authenticatedAdmin, adminController.putUsers)
 
   app.get('/signup', userController.signUpPage)
   app.post('/signup', userController.signUp)
@@ -59,23 +38,23 @@ module.exports = (app, passport) => {
   app.post('/signin', passport.authenticate('local', { failureRedirect: '/signin', failureFlash: true }), userController.signIn)
   app.get('/logout', userController.logout)
 
-  app.get('/users/top', authenticated, userController.getTopUser)
-  app.get('/users/:id', authenticated, userController.getUser)
-  app.get('/users/:id/edit', authenticated, isOwner, userController.editUser)
-  app.put('/users/:id', authenticated, upload.single('image'), userController.putUser)
+  app.get('/users/top', auth.authenticated, userController.getTopUser)
+  app.get('/users/:id', auth.authenticated, userController.getUser)
+  app.get('/users/:id/edit', auth.authenticated, auth.isOwner, userController.editUser)
+  app.put('/users/:id', auth.authenticated, upload.single('image'), userController.putUser)
 
-  app.get('/admin/categories', authenticatedAdmin, categoryController.getCategories)
-  app.post('/admin/categories', authenticatedAdmin, categoryController.postCategory)
-  app.get('/admin/categories/:id', authenticatedAdmin, categoryController.getCategories)
-  app.put('/admin/categories/:id', authenticatedAdmin, categoryController.putCategory)
-  app.delete('/admin/categories/:id', authenticatedAdmin, categoryController.deleteCategory)
+  app.get('/admin/categories', auth.authenticatedAdmin, categoryController.getCategories)
+  app.post('/admin/categories', auth.authenticatedAdmin, categoryController.postCategory)
+  app.get('/admin/categories/:id', auth.authenticatedAdmin, categoryController.getCategories)
+  app.put('/admin/categories/:id', auth.authenticatedAdmin, categoryController.putCategory)
+  app.delete('/admin/categories/:id', auth.authenticatedAdmin, categoryController.deleteCategory)
 
-  app.post('/favorite/:restaurantId', authenticated, userController.addFavorite)
-  app.delete('/favorite/:restaurantId', authenticated, userController.removeFavorite)
+  app.post('/favorite/:restaurantId', auth.authenticated, userController.addFavorite)
+  app.delete('/favorite/:restaurantId', auth.authenticated, userController.removeFavorite)
 
-  app.post('/like/:restaurantId', authenticated, userController.addLike)
-  app.delete('/like/:restaurantId', authenticated, userController.removeLike)
+  app.post('/like/:restaurantId', auth.authenticated, userController.addLike)
+  app.delete('/like/:restaurantId', auth.authenticated, userController.removeLike)
 
-  app.post('/following/:userId', authenticated, userController.addFollowing)
-  app.delete('/following/:userId', authenticated, userController.removeFollowing)
+  app.post('/following/:userId', auth.authenticated, userController.addFollowing)
+  app.delete('/following/:userId', auth.authenticated, userController.removeFollowing)
 }
