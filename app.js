@@ -19,6 +19,7 @@ app.engine('handlebars', handlebars({
 app.set('view engine', 'handlebars') // 設定使用 Handlebars 做為樣板引擎
 // app.use(express.urlencoded({ extended: true }))
 app.use(bodyParser.urlencoded({ extended: true }))
+app.use(bodyParser.json())
 app.use(session({
   secret: 'secret',
   resave: false,
