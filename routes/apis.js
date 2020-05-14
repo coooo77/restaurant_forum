@@ -15,6 +15,7 @@ const authenticatedAdmin = (req, res, next) => {
 
 const adminController = require('../controllers/api/adminController.js')
 const categoryController = require('../controllers/api/categoryController')
+const restController = require('../controllers/api/restController')
 const userController = require('../controllers/api/userController.js')
 
 
@@ -36,6 +37,16 @@ router.get('/admin/categories', authenticated, authenticatedAdmin, categoryContr
 router.post('/admin/categories', authenticated, authenticatedAdmin, categoryController.postCategory)
 router.put('/admin/categories/:id', authenticated, authenticatedAdmin, categoryController.putCategory)
 router.delete('/admin/categories/:id', authenticated, authenticatedAdmin, categoryController.deleteCategory)
+
+
+// restController 的路由
+// 第一項的API有必要做出來嗎? 後端沒有需要給資料 應該是不用？
+router.get('/', authenticated, (req, res) => res.redirect('/restaurants'))
+router.get('/restaurants', authenticated, restController.getRestaurants)
+router.get('/restaurants/top', authenticated, restController.getTop10Restaurants)
+router.get('/restaurants/feeds', authenticated, restController.getFeeds)
+router.get('/restaurants/:id', authenticated, restController.getRestaurant)
+router.get('/restaurants/:id/dashboard', authenticated, restController.getDashboard)
 
 
 // userController 的路由
