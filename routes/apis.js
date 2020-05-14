@@ -12,6 +12,15 @@ const authenticatedAdmin = (req, res, next) => {
     return res.json({ status: 'error', message: 'permission denied' })
   }
 }
+// const isOwner = require('../config/auth')
+const isOwner = (req, res, next) => {
+  // 檢查是否為該頁面擁有者
+  if (Number(req.params.id) === Number(req.user.id)) {
+    return next()
+  } else {
+    return res.json({ status: 'error', message: 'permission denied' })
+  }
+}
 
 const adminController = require('../controllers/api/adminController.js')
 const categoryController = require('../controllers/api/categoryController')
@@ -52,5 +61,19 @@ router.get('/restaurants/:id/dashboard', authenticated, restController.getDashbo
 // userController 的路由
 router.post('/signin', userController.signIn)
 router.post('/signup', userController.signUp)
+
+router.get('/users/top', authenticated, userController.getTopUser)
+router.get('/users/:id', authenticated, userController.getUser)
+router.get('/users/:id/edit', authenticated, isOwner, userController.editUser)
+router.put('/users/:id', authenticated, isOwner, upload.single('image'), userController.putUser)
+
+router.post('/favorite/:restaurantId', authenticated, userController.addFavorite)
+router.delete('/favorite/:restaurantId', authenticated, userController.removeFavorite)
+
+router.post('/like/:restaurantId', authenticated, userController.addLike)
+router.delete('/like/:restaurantId', authenticated, userController.removeLike)
+
+router.post('/following/:userId', authenticated, userController.addFollowing)
+router.delete('/following/:userId', authenticated, userController.removeFollowing)
 
 module.exports = router

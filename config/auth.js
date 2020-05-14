@@ -16,6 +16,7 @@ const auth = {
 
   isOwner: (req, res, next) => {
     // 檢查是否為該頁面擁有者
+    // 要怎麼讓API跟瀏覽器共用?
     if (Number(req.params.id) === Number(req.user.id)) {
       return next()
     } else {

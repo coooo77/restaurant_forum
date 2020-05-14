@@ -8,6 +8,7 @@ const Like = db.Like
 const Followship = db.Followship
 const imgur = require('imgur-node-api')
 const IMGUR_CLIENT_ID = process.env.IMGUR_CLIENT_ID
+const userService = require('../services/userService')
 
 const userController = {
   signUpPage: (req, res) => {
@@ -71,174 +72,75 @@ const userController = {
   // 可能需要解決的問題：自己追蹤自己算是合理的功能嗎?
 
   getUser: (req, res) => {
-    User.findByPk(req.params.id, {
-      include: [
-        { model: Comment, include: [Restaurant] },
-        { model: Restaurant, as: 'FavoritedRestaurants' },
-        { model: User, as: 'Followers' },
-        { model: User, as: 'Followings' },
-      ]
-    }).then((user) => {
-      // 找出所有評論過的餐廳(CommentedRestaurants)，但是不重複      
-      const CommentedRestaurants = []
-      user.Comments.forEach((comment) => {
-        const data = JSON.parse(JSON.stringify(comment.dataValues.Restaurant))
-        // 如果現在檢查的餐廳ID已經在CommentedRestaurants裡面，代表已經有兩則以上的評論了，不需要再把餐廳資料放進去
-        if (!CommentedRestaurants.some(restaurant => restaurant.id === comment.dataValues.RestaurantId)) {
-          CommentedRestaurants.push(data)
-        }
-      })
-
-      console.log('CommentedRestaurants', CommentedRestaurants)
-
-      const numbers = {
-        numberOfComments: CommentedRestaurants.length,
-        numberOfFavoritedRestaurants: user.FavoritedRestaurants.length,
-        numberOfFollowers: user.Followers.length,
-        numberOfFollowings: user.Followings.length
-      }
-      // 檢查是否是Profile的擁有者
-      const isOwner = req.user.id === user.id
-      const isFollowed = req.user.Followings.some(d => d.id === user.id)
-      return res.render('profile', {
-        user: user.toJSON(),
-        isOwner,
-        isFollowed,
-        numbers,
-        CommentedRestaurants
-      })
+    userService.getUser(req, res, (data) => {
+      return res.render('profile', data)
     })
   },
 
   editUser: (req, res) => {
-    User.findByPk(req.params.id, {
-      raw: true,
-      nest: true
-    }).then((user) => {
-      return res.render('editProfile', { user: user })
+    userService.editUser(req, res, (data) => {
+      return res.render('editProfile', data)
     })
   },
 
   putUser: (req, res) => {
-    if (!req.body.name) {
-      req.flash('error_messages', "name didn't exist")
-      return res.redirect('back')
-    }
-
-    const { file } = req
-    if (file) {
-      imgur.setClientID(IMGUR_CLIENT_ID);
-      imgur.upload(file.path, (err, img) => {
-        if (err) console.log('Error: ', err)
-        return User.findByPk(req.params.id)
-          .then((user) => {
-            user.update({
-              name: req.body.name,
-              image: file ? img.data.link : user.image
-            }).then((user) => {
-              req.flash('success_messages', 'user was successfully to update')
-              res.redirect(`/users/${user.id}`)
-            })
-          })
-      })
-    } else {
-      return User.findByPk(req.params.id)
-        .then((user) => {
-          user.update({
-            name: req.body.name,
-            image: user.image ? user.image : ''
-          }).then((user) => {
-            req.flash('success_messages', 'user was successfully to update')
-            res.redirect(`/users/${user.id}`)
-          })
-        })
-    }
+    userService.putUser(req, res, (data) => {
+      if (data['status'] === 'error') {
+        req.flash('error_messages', data['message'])
+        return res.redirect('back')
+      }
+      req.flash('success_messages', data['message'])
+      res.redirect(`/users/${req.params.id}`)
+    })
   },
 
   addFavorite: (req, res) => {
-    return Favorite.create({
-      UserId: req.user.id,
-      RestaurantId: req.params.restaurantId
+    userService.addFavorite(req, res, (data) => {
+      req.flash('success_messages', data['message'])
+      return res.redirect('back')
     })
-      .then((restaurant) => {
-        return res.redirect('back')
-      })
   },
 
   removeFavorite: (req, res) => {
-    return Favorite.findOne({
-      where: {
-        UserId: req.user.id,
-        RestaurantId: req.params.restaurantId
-      }
+    userService.removeFavorite(req, res, (data) => {
+      req.flash('success_messages', data['message'])
+      return res.redirect('back')
     })
-      .then((favorite) => {
-        favorite.destroy()
-          .then((restaurant) => {
-            return res.redirect('back')
-          })
-      })
   },
 
   addLike: (req, res) => {
-    return Like.create({
-      UserId: req.user.id,
-      RestaurantId: req.params.restaurantId
+    userService.addLike(req, res, (data) => {
+      req.flash('success_messages', data['message'])
+      return res.redirect('back')
     })
-      .then((restaurant) => {
-        return res.redirect('back')
-      })
   },
 
   removeLike: (req, res) => {
-    return Like.findOne({
-      where: {
-        UserId: req.user.id,
-        RestaurantId: req.params.restaurantId
-      }
+    userService.removeLike(req, res, (data) => {
+      req.flash('success_messages', data['message'])
+      return res.redirect('back')
     })
-      .then(like => like.destroy())
-      .then(restaurant => res.redirect('back'))
-
   },
 
   getTopUser: (req, res) => {
-    return User.findAll({
-      include: [
-        { model: User, as: 'Followers' }
-      ]
-    }).then(users => {
-      users = users.map(user => ({
-        ...user.dataValues,
-        FollowerCount: user.Followers.length,
-        isFollowed: req.user.Followings.some(d => d.id === user.id)
-      }))
-      users = users.sort((a, b) => b.FollowerCount - a.FollowerCount)
-      return res.render('topUser', { users: users })
+    userService.getTopUser(req, res, (data) => {
+      return res.render('topUser', data)
     })
   },
 
   addFollowing: (req, res) => {
-    return Followship.create({
-      followerId: req.user.id,
-      followingId: req.params.userId
+    userService.addFollowing(req, res, (data) => {
+      req.flash('success_messages', data['message'])
+      return res.redirect('back')
     })
-      .then((followship) => {
-        return res.redirect('back')
-      })
   },
 
   removeFollowing: (req, res) => {
-    return Followship.findOne({
-      where: {
-        followerId: req.user.id,
-        followingId: req.params.userId
-      }
+    userService.removeFollowing(req, res, (data) => {
+      req.flash('success_messages', data['message'])
+      return res.redirect('back')
     })
-      .then(followship => followship.destroy())
-      .then((followship) => res.redirect('back'))
   }
-
 }
 
 module.exports = userController
