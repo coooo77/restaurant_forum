@@ -17,18 +17,28 @@ const adminController = require('../controllers/api/adminController.js')
 const categoryController = require('../controllers/api/categoryController')
 const userController = require('../controllers/api/userController.js')
 
+
+// adminController 的路由
 router.get('/admin/restaurants', authenticated, authenticatedAdmin, adminController.getRestaurants)
-router.get('/admin/restaurants/:id', adminController.getRestaurant)
-router.delete('/admin/restaurants/:id', adminController.deleteRestaurant)
-router.post('/admin/restaurants', upload.single('image'), adminController.postRestaurant)
-router.put('/admin/restaurants/:id', upload.single('image'), adminController.putRestaurant)
+router.get('/admin/restaurants/create', authenticated, authenticatedAdmin, adminController.createRestaurant)
+router.get('/admin/restaurants/:id/edit', authenticated, authenticatedAdmin, adminController.editRestaurant)
+router.get('/admin/restaurants/:id', authenticated, authenticatedAdmin, adminController.getRestaurant)
+router.delete('/admin/restaurants/:id', authenticated, authenticatedAdmin, adminController.deleteRestaurant)
+router.post('/admin/restaurants', authenticated, authenticatedAdmin, upload.single('image'), adminController.postRestaurant)
+router.put('/admin/restaurants/:id', authenticated, authenticatedAdmin, upload.single('image'), adminController.putRestaurant)
+
+router.get('/admin/users', authenticated, authenticatedAdmin, adminController.getUsers)
+router.put('/admin/users/:id', authenticated, authenticatedAdmin, adminController.putUsers)
 
 
-router.get('/admin/categories', categoryController.getCategories)
-router.post('/admin/categories', categoryController.postCategory)
-router.put('/admin/categories/:id', categoryController.putCategory)
-router.delete('/admin/categories/:id', categoryController.deleteCategory)
+// categoryController 的路由
+router.get('/admin/categories', authenticated, authenticatedAdmin, categoryController.getCategories)
+router.post('/admin/categories', authenticated, authenticatedAdmin, categoryController.postCategory)
+router.put('/admin/categories/:id', authenticated, authenticatedAdmin, categoryController.putCategory)
+router.delete('/admin/categories/:id', authenticated, authenticatedAdmin, categoryController.deleteCategory)
 
+
+// userController 的路由
 router.post('/signin', userController.signIn)
 router.post('/signup', userController.signUp)
 

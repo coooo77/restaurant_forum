@@ -16,14 +16,12 @@ const adminService = {
     })
   },
 
-  createRestaurant: (req, res) => {
+  createRestaurant: (req, res, callback) => {
     Category.findAll({
       raw: true,
       nest: true
     }).then(categories => {
-      return res.render('admin/create', {
-        categories: categories
-      })
+      callback({ categories })
     })
   },
 
@@ -74,16 +72,13 @@ const adminService = {
     })
   },
 
-  editRestaurant: (req, res) => {
+  editRestaurant: (req, res, callback) => {
     Category.findAll({
       raw: true,
       nest: true
     }).then(categories => {
       return Restaurant.findByPk(req.params.id).then(restaurant => {
-        return res.render('admin/create', {
-          categories: categories,
-          restaurant: restaurant.toJSON()
-        })
+        callback({ categories, restaurant: restaurant.toJSON() })
       })
     })
   },
@@ -142,22 +137,24 @@ const adminService = {
       })
   },
 
-  getUsers: (req, res) => {
+  getUsers: (req, res, callback) => {
     return User.findAll({ raw: true })
       .then((users) => {
-        res.render('admin/users', { users })
+        callback({ users })
       })
   },
 
-  putUsers: (req, res) => {
+  putUsers: (req, res, callback) => {
     return User.findByPk(req.params.id)
-      .then(async (user) => {
-        user.isAdmin = !user.isAdmin
-        await user.save()
+      .then((user) => {
+        // user.isAdmin = !user.isAdmin
+        // await user.save()
+        user.update({
+          isAdmin: !user.isAdmin
+        })
       })
       .then((user) => {
-        req.flash('success_messages', 'user was successfully to update')
-        return res.redirect('/admin/users')
+        callback({ status: 'success', message: 'user was successfully to update' })
       })
   }
 }
