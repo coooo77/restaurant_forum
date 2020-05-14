@@ -5,6 +5,7 @@ const upload = multer({ dest: 'temp/' })
 const passport = require('../config/passport')
 const authenticated = passport.authenticate('jwt', { session: false })
 const authenticatedAdmin = (req, res, next) => {
+  // authenticatedAdmin使用之前要使用authenticated才會得到req.user
   if (req.user) {
     if (req.user.isAdmin) { return next() }
     return res.json({ status: 'error', message: 'permission denied' })
@@ -26,7 +27,7 @@ const adminController = require('../controllers/api/adminController.js')
 const categoryController = require('../controllers/api/categoryController')
 const restController = require('../controllers/api/restController')
 const userController = require('../controllers/api/userController.js')
-
+const commentController = require('../controllers/api/commentController.js')
 
 // adminController 的路由
 router.get('/admin/restaurants', authenticated, authenticatedAdmin, adminController.getRestaurants)
@@ -75,5 +76,10 @@ router.delete('/like/:restaurantId', authenticated, userController.removeLike)
 
 router.post('/following/:userId', authenticated, userController.addFollowing)
 router.delete('/following/:userId', authenticated, userController.removeFollowing)
+
+
+// commentController 的路由
+router.post('/comments', authenticated, commentController.postComment)
+router.delete('/comments/:id', authenticated, authenticatedAdmin, commentController.deleteComment)
 
 module.exports = router
